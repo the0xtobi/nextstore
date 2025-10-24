@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "../button";
 
 type PaginationProps = {
@@ -15,6 +15,7 @@ export default function Pagination({
   urlParamName,
 }: PaginationProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <div className="flex gap-2">
@@ -23,7 +24,7 @@ export default function Pagination({
         variant="outline"
         className="w-28"
         disabled={Number(page) <= 1}
-        onClick={() => router.push(`/user/orders?page=${page - 1}`)}
+        onClick={() => router.push(`${pathname}?page=${page - 1}`)}
       >
         Previous
       </Button>
@@ -32,7 +33,7 @@ export default function Pagination({
         variant="outline"
         className="w-28"
         disabled={Number(page) >= totalPages}
-        onClick={() => router.push(`/user/orders?page=${page + 1}`)}
+        onClick={() => router.push(`${pathname}?page=${page + 1}`)}
       >
         Next
       </Button>

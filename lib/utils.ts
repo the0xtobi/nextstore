@@ -17,28 +17,64 @@ export function formatNumberWithDecimal(num: number): string {
 }
 
 // Format errors
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function formatError(error: any) {
-  if (error.name === "ZodError") {
-    // Handle zod error
-    const fieldErrors = Object.keys(error.errors).map(
-      (field) => error.errors[field].message
+export function formatError(error: unknown): string {
+  // Handle Zod errors
+  if (
+    error &&
+    typeof error === "object" &&
+    "name" in error &&
+    error.name === "ZodError" &&
+    "errors" in error
+  ) {
+    const zodError = error as { errors: Record<string, { message: string }> };
+    const fieldErrors = Object.keys(zodError.errors).map(
+      (field) => zodError.errors[field].message
     );
-
     return fieldErrors.join(". ");
-  } else if (
-    error.name === "PrismaClientKnownRequestError" &&
+  }
+
+  // Handle Prisma validation errors (missing/invalid required fields)
+  if (
+    error &&
+    typeof error === "object" &&
+    "name" in error &&
+    error.name === "PrismaClientValidationError"
+  ) {
+    return "Oops! Something's missing. Please try again.";
+  }
+
+  // Handle Prisma P2002 (unique constraint) errors
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
     error.code === "P2002"
   ) {
-    // Handle the Prisma error
-    const field = error.meta?.target ? error.meta.target[0] : "Field";
-    return `${field.charAt(0).toUpperCase + field.slice(1)} already exists`;
-  } else {
-    // Handle other errors
-    return typeof error.message === "string"
-      ? error.message
-      : JSON.stringify(error.message);
+    const prismaError = error as { meta?: { target?: string[] } };
+    const field = prismaError.meta?.target?.[0] || "field";
+    return `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
   }
+
+  // Handle Prisma P2025 (record not found)
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    error.code === "P2025"
+  ) {
+    return "Record not found.";
+  }
+
+  // Pass through standard error messages
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return "Something went wrong. Please try again.";
 }
 
 // Round number to 2 decimal places
