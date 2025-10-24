@@ -63,7 +63,7 @@ export default async function AdminOrdersPage(props: {
                   <div className="flex gap-2">
                     <Button asChild variant="outline" size="sm">
                       <Link href={`/order/${order.id}`}>
-                        <span className="px-2 hover:underline">Details</span>
+                        <span className="hover:underline">Details</span>
                       </Link>
                     </Button>
                     <DeleteDialog id={order.id} action={deleteOrder} />
