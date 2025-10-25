@@ -119,7 +119,7 @@ export async function getMyOrders({
   if (!session) throw new Error("User is not authorized");
 
   const data = await prisma.order.findMany({
-    where: { userId: session?.user?.id },
+    where: { userId: session?.user?.id, isPaid: true },
     orderBy: { createdAt: "desc" },
     take: limit,
     skip: (page - 1) * limit,
@@ -235,7 +235,7 @@ export async function updateOrderToPaid({
   // Transaction to update order and account for product stock
   await prisma.$transaction(async (tx) => {
     // Iterate over products and update stock
-    for (const item of order.orderitems) {
+    for (const item of order.orderItems) {
       await tx.product.update({
         where: { id: item.productId },
         data: { stock: { increment: -item.qty } },
@@ -257,7 +257,7 @@ export async function updateOrderToPaid({
   const updatedOrder = await prisma.order.findFirst({
     where: { id: orderId },
     include: {
-      orderitems: true,
+      orderItems: true,
       user: { select: { name: true, email: true } },
     },
   });
@@ -268,8 +268,31 @@ export async function updateOrderToPaid({
 // Update COD order to paid
 export async function updateOrderToPaidCOD(orderId: string) {
   try {
+    await updateOrderToPaid({ orderId });
     revalidatePath(`/order/${orderId}`);
     return { success: true, message: "Order marked as paid" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Update COD order to delivered
+export async function updateOrderToDeliveredCOD(orderId: string) {
+  try {
+    const order = await prisma.order.findFirst({
+      where: { id: orderId },
+    });
+    if (!order) throw new Error("Order not found");
+    if (!order.isPaid) throw new Error("Order is not paid");
+    if (order.isDelivered) throw new Error("Order is already delivered");
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { isDelivered: true, deliveredAt: new Date() },
+    });
+
+    revalidatePath(`/order/${orderId}`);
+    return { success: true, message: "Order marked as delivered" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

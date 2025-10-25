@@ -14,8 +14,21 @@ import { formatCurrency, formatDateTime, formatId } from "@/lib/utils";
 import { Order } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
+import { useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  updateOrderToDeliveredCOD,
+  updateOrderToPaidCOD,
+} from "@/lib/actions/order.actions";
+import { toast } from "sonner";
 
-export default function OrderDetailsTable({ order }: { order: Order }) {
+export default function OrderDetailsTable({
+  order,
+  isAdmin,
+}: {
+  order: Order;
+  isAdmin: boolean;
+}) {
   const {
     id,
     shippingAddress,
@@ -30,6 +43,53 @@ export default function OrderDetailsTable({ order }: { order: Order }) {
     paidAt,
     deliveredAt,
   } = order;
+
+  // Button to mark order as paid
+  function MarkAsPaidButton() {
+    const [isPending, startTransition] = useTransition();
+    return (
+      <Button
+        type="button"
+        disabled={isPending}
+        onClick={() =>
+          startTransition(async () => {
+            const res = await updateOrderToPaidCOD(id);
+            if (!res.success) {
+              toast.error(res.message);
+              return;
+            }
+            toast.success(res.message);
+          })
+        }
+      >
+        {isPending ? "Processing..." : "Mark as paid"}
+      </Button>
+    );
+  }
+
+  // Button to mark order as delivered
+  function MarkAsDeliveredButton() {
+    const [isPending, startTransition] = useTransition();
+    return (
+      <Button
+        type="button"
+        disabled={isPending}
+        onClick={() =>
+          startTransition(async () => {
+            const res = await updateOrderToDeliveredCOD(id);
+            if (!res.success) {
+              toast.error(res.message);
+              return;
+            }
+            toast.success(res.message);
+          })
+        }
+      >
+        {isPending ? "Processing..." : "Mark as delivered"}
+      </Button>
+    );
+  }
+
   return (
     <>
       <h1 className="py-4 text-2xl">Order {formatId(id)}</h1>
@@ -125,6 +185,10 @@ export default function OrderDetailsTable({ order }: { order: Order }) {
                 <div>Total</div>
                 <div>{formatCurrency(totalPrice)}</div>
               </div>
+              {isAdmin && !isPaid && paymentMethod === "CashOnDelivery" && (
+                <MarkAsPaidButton />
+              )}
+              {isAdmin && isPaid && !isDelivered && <MarkAsDeliveredButton />}
             </CardContent>
           </Card>
         </div>
