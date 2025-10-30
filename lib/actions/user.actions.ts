@@ -13,6 +13,8 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { formatError } from "../utils";
 import { ShippingAddress } from "@/types";
 import z from "zod";
+import { PAGE_SIZE } from "./../constants/index";
+import { revalidatePath } from "next/cache";
 
 // Sign in the user with credentials
 export async function signInWithCredentials(
@@ -143,6 +145,39 @@ export async function updateProfile(user: { name: string; email: string }) {
       data: { name: user.name },
     });
     return { success: true, message: "User updated successfully" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Get all the users
+export async function getAllUsers({
+  page,
+  limit = PAGE_SIZE,
+}: {
+  page: number;
+  limit?: number;
+}) {
+  const [data, dataCount] = await Promise.all([
+    prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.user.count(),
+  ]);
+
+  return { data, totalPages: Math.ceil(dataCount / limit) };
+}
+
+// Delete a user
+export async function deleteUser(id: string) {
+  try {
+    await prisma.user.delete({
+      where: { id },
+    });
+    revalidatePath("/admin/users");
+    return { success: true, message: "User deleted successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
