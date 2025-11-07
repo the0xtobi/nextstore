@@ -12,6 +12,7 @@ import {
 import { deleteProduct, getAllProducts } from "@/lib/actions/product.actions";
 import { requireAdmin } from "@/lib/auth-guard";
 import { formatCurrency, formatId } from "@/lib/utils";
+
 import Link from "next/link";
 
 export default async function AdminProductsPage(props: {
@@ -28,7 +29,19 @@ export default async function AdminProductsPage(props: {
   return (
     <div className="space-y-2">
       <div className="flex-between">
-        <h1 className="h2-bold">Products</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="h2-bold">Products</h1>
+          {searchText && (
+            <div>
+              Filtered by <i>&quot;{searchText}&quot;</i>{" "}
+              <Link href="/admin/products">
+                <Button variant="outline" size="sm">
+                  Remove Filter
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
         <Button asChild variant="default">
           <Link href="/admin/products/create">Create Product</Link>
         </Button>
