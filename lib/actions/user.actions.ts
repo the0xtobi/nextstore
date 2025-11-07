@@ -16,6 +16,7 @@ import { ShippingAddress } from "@/types";
 import z from "zod";
 import { PAGE_SIZE } from "./../constants/index";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 
 // Sign in the user with credentials
 export async function signInWithCredentials(
@@ -155,12 +156,25 @@ export async function updateProfile(user: { name: string; email: string }) {
 export async function getAllUsers({
   page,
   limit = PAGE_SIZE,
+  query,
 }: {
   page: number;
   limit?: number;
+  query: string;
 }) {
+  const queryFilter: Prisma.UserWhereInput =
+    query && query !== "all"
+      ? {
+          name: {
+            contains: query,
+            mode: "insensitive",
+          } as Prisma.StringFilter,
+        }
+      : {};
+
   const [data, dataCount] = await Promise.all([
     prisma.user.findMany({
+      where: { ...queryFilter },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
