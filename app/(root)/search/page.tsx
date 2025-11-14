@@ -116,13 +116,13 @@ export default async function SearchPage(props: {
                 Any
               </Link>
             </li>
-            {categories.map((x) => (
-              <li key={x.category}>
+            {prices.map((p) => (
+              <li key={p.value}>
                 <Link
-                  href={getFilterUrl({ c: x.category })}
-                  className={`${category === x.category && "font-bold"}`}
+                  href={getFilterUrl({ p: p.value })}
+                  className={`${price === p.value && "font-bold"}`}
                 >
-                  {x.category}
+                  {p.name}
                 </Link>
               </li>
             ))}
