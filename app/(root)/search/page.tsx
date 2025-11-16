@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ui/shared/product/product-card";
 import {
   getAllCategories,
@@ -160,8 +161,19 @@ export default async function SearchPage(props: {
           <div className="flex items-center">
             {q !== "all" && q !== "" && "Query: " + q}
             {category !== "all" && category !== "" && "Category: " + category}
-            {category !== "all" && category !== "" && "Category: " + category}
+            {price !== "all" && " Price: " + price}
+            {rating !== "all" && " Rating: " + rating + " stars & up"}
+            &nbsp;
+            {(q !== "all" && q !== "") ||
+            (category !== "all" && category !== "") ||
+            rating !== "all" ||
+            price !== "all" ? (
+              <Button variant="link" asChild>
+                <Link href={"/search"}>Clear</Link>
+              </Button>
+            ) : null}
           </div>
+          <div>{/* SORT */}</div>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {products.data.length === 0 && <div>No products found</div>}
