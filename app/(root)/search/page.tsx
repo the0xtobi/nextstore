@@ -19,6 +19,8 @@ const prices = [
   { name: "$1001 to $10000", value: "1001-10000" },
 ];
 
+const ratings = [4, 3, 2, 1];
+
 export default async function SearchPage(props: {
   searchParams: Promise<{
     q?: string;
@@ -105,7 +107,7 @@ export default async function SearchPage(props: {
         </div>
 
         {/* PRICE LINKS */}
-        <div className="text-xl mb-2 mt-3">Price</div>
+        <div className="text-xl mb-2 mt-8">Price</div>
         <div>
           <ul className="space-y-1">
             <li>
@@ -128,8 +130,39 @@ export default async function SearchPage(props: {
             ))}
           </ul>
         </div>
+        {/* RATINGS LINKS */}
+        <div className="text-xl mb-2 mt-8">Customer Ratings</div>
+        <div>
+          <ul className="space-y-1">
+            <li>
+              <Link
+                href={getFilterUrl({ r: "all" })}
+                className={`${rating === "all" && "font-bold"}`}
+              >
+                Any
+              </Link>
+            </li>
+            {ratings.map((r) => (
+              <li key={r}>
+                <Link
+                  href={getFilterUrl({ r: `${r}` })}
+                  className={`${rating === r.toString() && "font-bold"}`}
+                >
+                  {`${r} stars & up`}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
       <div className="md:col-span-4 space-y-4">
+        <div className="flex-between my-4 md:flex-row flex-col">
+          <div className="flex items-center">
+            {q !== "all" && q !== "" && "Query: " + q}
+            {category !== "all" && category !== "" && "Category: " + category}
+            {category !== "all" && category !== "" && "Category: " + category}
+          </div>
+        </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {products.data.length === 0 && <div>No products found</div>}
           {products.data.map((product) => (

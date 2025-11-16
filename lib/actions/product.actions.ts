@@ -173,12 +173,3 @@ export async function getFeaturedProducts() {
   });
   return convertToPlainObject(data);
 }
-// Get featured products
-export async function getCoolProducts() {
-  const data = await prisma.product.findMany({
-    where: { isFeatured: true },
-    orderBy: { createdAt: "desc" },
-    take: 4,
-  });
-  return convertToPlainObject(data);
-}
