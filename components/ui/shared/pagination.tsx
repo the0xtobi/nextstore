@@ -6,14 +6,9 @@ import { Button } from "../button";
 type PaginationProps = {
   page: number;
   totalPages: number;
-  urlParamName?: string;
 };
 
-export default function Pagination({
-  page,
-  totalPages,
-  urlParamName,
-}: PaginationProps) {
+export default function Pagination({ page, totalPages }: PaginationProps) {
   const router = useRouter();
   const pathname = usePathname();
 
