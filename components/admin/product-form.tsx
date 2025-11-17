@@ -37,18 +37,19 @@ export default function ProductForm({
 }) {
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof insertProductSchema>>({
-    resolver:
-      type === "Update"
-        ? zodResolver(updateProductSchema)
-        : zodResolver(insertProductSchema),
+  const form = useForm<
+    z.infer<typeof insertProductSchema> | z.infer<typeof updateProductSchema>
+  >({
+    resolver: zodResolver(
+      type === "Update" ? updateProductSchema : insertProductSchema
+    ),
     defaultValues:
       product && type === "Update" ? product : productDefaultValues,
   });
 
-  const onSubmit: SubmitHandler<z.infer<typeof insertProductSchema>> = async (
-    values
-  ) => {
+  const onSubmit: SubmitHandler<
+    z.infer<typeof insertProductSchema> | z.infer<typeof updateProductSchema>
+  > = async (values) => {
     // On Create
     if (type === "Create") {
       const res = await createProduct(values);
@@ -66,7 +67,10 @@ export default function ProductForm({
         router.push("/admin/products");
         return;
       }
-      const res = await updateProduct({ ...values, id: productId });
+      const res = await updateProduct({
+        ...values,
+        id: productId,
+      } as z.infer<typeof updateProductSchema>);
       if (!res.success) {
         toast.error(res.message);
       } else {
