@@ -9,6 +9,7 @@ import AddToCart from "@/components/ui/shared/product/add-to-cart";
 import { getMyCart } from "@/lib/actions/cart.actions";
 import { auth } from "@/auth";
 import ReviewList from "./review-list";
+import Rating from "@/components/ui/shared/product/rating";
 
 export default async function ProductDetailsPage(props: {
   params: Promise<{ slug: string }>;
@@ -33,10 +34,9 @@ export default async function ProductDetailsPage(props: {
           {/* Details column */}
           <div className="col-span-2 p-5">
             <div className="flex flex-col gap-6">
-              <p>
-                {product.brand} {product.category}
-              </p>
               <h1 className="h3-bold">{product.name}</h1>
+              <Rating value={Number(product.rating)} />
+              <p>{product.numReviews} reviews</p>
               <p>
                 {product.rating} of {product.numReviews} Reviews
               </p>

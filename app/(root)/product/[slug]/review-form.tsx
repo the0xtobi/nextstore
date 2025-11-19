@@ -26,17 +26,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { createUpdateReview } from "@/lib/actions/review.actions";
+
 import { reviewFormDefaultValues } from "@/lib/constants";
 import { insertReviewSchema } from "@/lib/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { StarIcon } from "lucide-react";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  createUpdateReview,
+  getReviewByProductId,
+} from "@/lib/actions/review.actions";
 import { toast } from "sonner";
-import z from "zod";
 
-export default function ReviewForm({
+const ReviewForm = ({
   userId,
   productId,
   onReviewSubmitted,
@@ -44,7 +48,7 @@ export default function ReviewForm({
   userId: string;
   productId: string;
   onReviewSubmitted: () => void;
-}) {
+}) => {
   const [open, setOpen] = useState(false);
 
   const form = useForm<z.infer<typeof insertReviewSchema>>({
@@ -52,14 +56,23 @@ export default function ReviewForm({
     defaultValues: reviewFormDefaultValues,
   });
 
-  // Open form handler
-  const handleOpenForm = () => {
+  // Open Form Handler
+  const handleOpenForm = async () => {
     form.setValue("productId", productId);
     form.setValue("userId", userId);
+
+    const review = await getReviewByProductId({ productId });
+
+    if (review) {
+      form.setValue("title", review.title);
+      form.setValue("description", review.description);
+      form.setValue("rating", review.rating);
+    }
+
     setOpen(true);
   };
 
-  // Submit form handler
+  // Submit Form Handler
   const onSubmit: SubmitHandler<z.infer<typeof insertReviewSchema>> = async (
     values
   ) => {
@@ -67,23 +80,25 @@ export default function ReviewForm({
 
     if (!res.success) {
       toast.error(res.message);
-    } else {
-      setOpen(false);
-      onReviewSubmitted();
-      toast.success(res.message);
     }
+
+    setOpen(false);
+
+    onReviewSubmitted();
+
+    toast.success(res.message);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button onClick={handleOpenForm} variant="default">
-        Write a review
+        Write a Review
       </Button>
       <DialogContent className="sm:max-w-[425px]">
         <Form {...form}>
-          <form method="POST" onSubmit={form.handleSubmit(onSubmit)}>
+          <form method="post" onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
-              <DialogTitle>Write a review</DialogTitle>
+              <DialogTitle>Write a Review</DialogTitle>
               <DialogDescription>
                 Share your thoughts with other customers
               </DialogDescription>
@@ -104,50 +119,55 @@ export default function ReviewForm({
               <FormField
                 control={form.control}
                 name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Enter description" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Enter description" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
               />
               <FormField
                 control={form.control}
                 name="rating"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Rating</FormLabel>
-
-                    <Select
-                      onValueChange={field.onChange}
-                      value={
-                        field.value === 0 ? undefined : field.value.toString()
-                      }
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a rating" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <SelectItem key={i} value={(i + 1).toString()}>
-                            {i + 1} <StarIcon className="inline h-4 w-4" />
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel>Rating</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Array.from({ length: 5 }).map((_, index) => (
+                            <SelectItem
+                              key={index}
+                              value={(index + 1).toString()}
+                            >
+                              {index + 1}{" "}
+                              <StarIcon className="inline h-4 w-4" />
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
             <DialogFooter>
               <Button
                 type="submit"
-                size={"lg"}
+                size="lg"
                 className="w-full"
                 disabled={form.formState.isSubmitting}
               >
@@ -159,4 +179,6 @@ export default function ReviewForm({
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default ReviewForm;

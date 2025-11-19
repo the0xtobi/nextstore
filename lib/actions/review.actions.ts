@@ -1,19 +1,19 @@
 "use server";
 
-import { auth } from "@/auth";
-import { formatError } from "../utils";
+import { z } from "zod";
 import { insertReviewSchema } from "../validators";
-import z from "zod";
+import { formatError } from "../utils";
+import { auth } from "@/auth";
 import { prisma } from "@/db/prisma";
 import { revalidatePath } from "next/cache";
 
-// Create and update reviews
+// Create & Update Reviews
 export async function createUpdateReview(
   data: z.infer<typeof insertReviewSchema>
 ) {
   try {
     const session = await auth();
-    if (!session) throw new Error("User not authenticated");
+    if (!session) throw new Error("User is not authenticated");
 
     // Validate and store the review
     const review = insertReviewSchema.parse({
@@ -30,12 +30,15 @@ export async function createUpdateReview(
 
     // Check if user already reviewed
     const reviewExists = await prisma.review.findFirst({
-      where: { productId: review.productId, userId: review.userId },
+      where: {
+        productId: review.productId,
+        userId: review.userId,
+      },
     });
 
     await prisma.$transaction(async (tx) => {
       if (reviewExists) {
-        // update review
+        // Update review
         await tx.review.update({
           where: { id: reviewExists.id },
           data: {
@@ -45,13 +48,11 @@ export async function createUpdateReview(
           },
         });
       } else {
-        // create review
-        await tx.review.create({
-          data: review,
-        });
+        // Create review
+        await tx.review.create({ data: review });
       }
 
-      // Get average rating
+      // Get avg rating
       const averageRating = await tx.review.aggregate({
         _avg: { rating: true },
         where: { productId: review.productId },
@@ -73,8 +74,51 @@ export async function createUpdateReview(
     });
 
     revalidatePath(`/product/${product.slug}`);
-    return { success: true, message: "Review updated successfully" };
+
+    return {
+      success: true,
+      message: "Review Updated Successfully",
+    };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
+}
+
+// Get all reviews for a product
+export async function getReviews({ productId }: { productId: string }) {
+  const data = await prisma.review.findMany({
+    where: {
+      productId: productId,
+    },
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return { data };
+}
+
+// Get a review written by the current user
+export async function getReviewByProductId({
+  productId,
+}: {
+  productId: string;
+}) {
+  const session = await auth();
+
+  if (!session) throw new Error("User is not authenticated");
+
+  return await prisma.review.findFirst({
+    where: {
+      productId,
+      userId: session?.user?.id,
+    },
+  });
 }
