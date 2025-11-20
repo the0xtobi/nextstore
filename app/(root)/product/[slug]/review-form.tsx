@@ -91,7 +91,7 @@ const ReviewForm = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button onClick={handleOpenForm} variant="default">
+      <Button className="mt-4" onClick={handleOpenForm} variant="default">
         Write a Review
       </Button>
       <DialogContent className="sm:max-w-[425px]">
@@ -139,11 +139,13 @@ const ReviewForm = ({
                       <FormLabel>Rating</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value.toString()}
+                        value={
+                          field.value === 0 ? undefined : field.value.toString()
+                        }
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder="Select a rating" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
