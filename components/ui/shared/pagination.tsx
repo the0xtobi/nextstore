@@ -24,7 +24,7 @@ export default function Pagination({ page, totalPages }: PaginationProps) {
         Previous
       </Button>
       <Button
-        size="lg"
+        size={"lg"}
         variant="outline"
         className="w-28"
         disabled={Number(page) >= totalPages}
