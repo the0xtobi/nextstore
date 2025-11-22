@@ -1,3 +1,5 @@
+import DealCountdown from "@/components/deal-countdown";
+import IconBoxes from "@/components/icon-boxes";
 import ProductCarousel from "@/components/ui/shared/product/product-carousel";
 import ProductList from "@/components/ui/shared/product/product-list";
 import ViewAllProductsButton from "@/components/view-all-products-button";
@@ -17,6 +19,8 @@ export default async function Hompage() {
       )}
       <ProductList data={latestProducts} title="Newest Arrivals" limit={4} />
       <ViewAllProductsButton />
+      <DealCountdown />
+      <IconBoxes />
     </>
   );
 }
