@@ -21,13 +21,16 @@ import {
   updateOrderToPaidCOD,
 } from "@/lib/actions/order.actions";
 import { toast } from "sonner";
+import StripePayment from "./stripe-payment";
 
 export default function OrderDetailsTable({
   order,
   isAdmin,
+  stripeClientSecret,
 }: {
   order: Order;
   isAdmin: boolean;
+  stripeClientSecret: string | null;
 }) {
   const {
     id,
@@ -185,6 +188,16 @@ export default function OrderDetailsTable({
                 <div>Total</div>
                 <div>{formatCurrency(totalPrice)}</div>
               </div>
+
+              {/* STRIPE PAYMENT */}
+              {!isPaid && paymentMethod === "Stripe" && stripeClientSecret && (
+                <StripePayment
+                  priceInCents={Number(order.totalPrice) * 100}
+                  orderId={order.id}
+                  clientSecret={stripeClientSecret}
+                />
+              )}
+
               {isAdmin && !isPaid && paymentMethod === "CashOnDelivery" && (
                 <MarkAsPaidButton />
               )}
