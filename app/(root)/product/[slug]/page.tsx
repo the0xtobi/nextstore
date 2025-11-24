@@ -91,7 +91,7 @@ export default async function ProductDetailsPage(props: {
         </div>
       </section>
       <section className="mt-10">
-        <h2 className="h2-bold">Customer Reviews</h2>
+        <h2 className="h2-bold">Customer reviews</h2>
         <ReviewList
           userId={userId || ""}
           productId={product.id}
